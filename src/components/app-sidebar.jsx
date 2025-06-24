@@ -2,11 +2,20 @@ import {
 	IconHome,
 	IconCalendarEvent,
 	IconDashboard,
-	IconInnerShadowTop,
 	IconSettings,
 	IconUsers,
+	IconUser,
+	IconLogout,
 } from "@tabler/icons-react"
-
+import {
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuLabel,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
 	Sidebar,
 	SidebarContent,
@@ -22,18 +31,19 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, SettingsIcon } from "lucide-react"
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { usePathname } from "next/navigation"
 
 const data = {
 	user: {
-		name: "shadcn",
+		name: "Tom",
 		email: "m@example.com",
-		avatar: "/avatars/shadcn.jpg",
+		avatar: "/avatars/admin.jpg",
 	},
 	navMain: [
 		{
@@ -45,54 +55,41 @@ const data = {
 			title: "Bookings",
 			icon: IconCalendarEvent,
 			children: [
-				{ title: "View Bookings", url: "/bookings" },
-				{ title: "Create Booking", url: "/bookings/create" },
+				{ title: "View Bookings", url: "/?view" },
+				{ title: "Create Booking", url: "/?create" },
 			],
 		},
 		{
 			title: "Venues",
 			icon: IconHome,
 			children: [
-				{ title: "All Venues", url: "/venues" },
-				{ title: "Add Venue", url: "/venues/add" },
+				{ title: "All Venues", url: "/?view2" },
+				{ title: "Add Venue", url: "/?view3" },
 			],
 		},
 		{
 			title: "Users",
 			icon: IconUsers,
 			children: [
-				{ title: "User List", url: "/users" },
-				{ title: "Invite User", url: "/users/invite" },
-			],
-		},
-		{
-			title: "Settings",
-			icon: IconSettings,
-			children: [
-				{ title: "Profile", url: "/settings/profile" },
-				{ title: "Preferences", url: "/settings/preferences" },
+				{ title: "User List", url: "/?view5" },
+				{ title: "Invite User", url: "/?view6" },
 			],
 		},
 	],
 }
 
 export function AppSidebar({ ...props }) {
+	const pathname = usePathname()
 	return (
-		<Sidebar collapsible="icon" {...props}>
+		<Sidebar collapsible="icon" className="group" {...props}>
 			<SidebarHeader>
-				<SidebarMenu>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							asChild
-							className="data-[slot=sidebar-menu-button]:!p-1.5"
-						>
-							<a href="#">
-								<IconInnerShadowTop className="!size-5" />
-								<span className="text-base font-semibold">Ayretium</span>
-							</a>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</SidebarMenu>
+				<SidebarGroup className="gap-1 group-data-[collapsible=icon]:p-0">
+					<a href="#">
+						<img src="/logo.png" alt="Logo" />
+					</a>
+					<h1 className="group-data-[collapsible=icon]:hidden text-sidebar-foreground/70 text-xs">Booking System</h1>
+					<span className="text-[9px] font-bold group-data-[collapsible=icon]:hidden text-sidebar-foreground/70">v0.0.1 BETA</span>
+				</SidebarGroup>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
@@ -100,11 +97,18 @@ export function AppSidebar({ ...props }) {
 					<SidebarMenu>
 						{data.navMain.map((item) => {
 							const hasChildren = item.children && item.children.length > 0
+							const isActive = item.url === pathname // exact match
+
+							// Check if any subitem matches the current path
+							const isGroupActive =
+								hasChildren &&
+								item.children.some((sub) => pathname.startsWith(sub.url))
+
 							return hasChildren ? (
 								<Collapsible
 									key={item.title}
 									asChild
-									defaultOpen={item.isActive}
+									defaultOpen={isGroupActive}
 									className="group/collapsible"
 								>
 									<SidebarMenuItem>
@@ -117,22 +121,32 @@ export function AppSidebar({ ...props }) {
 										</CollapsibleTrigger>
 										<CollapsibleContent>
 											<SidebarMenuSub>
-												{item.children.map((subItem) => (
-													<SidebarMenuSubItem key={subItem.title}>
-														<SidebarMenuSubButton asChild>
-															<a href={subItem.url}>
-																<span>{subItem.title}</span>
-															</a>
-														</SidebarMenuSubButton>
-													</SidebarMenuSubItem>
-												))}
+												{item.children.map((subItem) => {
+													const isActive = pathname === subItem.url
+													return (
+														<SidebarMenuSubItem key={subItem.title}>
+															<SidebarMenuSubButton
+																asChild
+																className={
+																	isActive
+																		? "bg-muted text-primary font-semibold"
+																		: ""
+																}
+															>
+																<a href={subItem.url}>
+																	<span>{subItem.title}</span>
+																</a>
+															</SidebarMenuSubButton>
+														</SidebarMenuSubItem>
+													)
+												})}
 											</SidebarMenuSub>
 										</CollapsibleContent>
 									</SidebarMenuItem>
 								</Collapsible>
 							) : (
 								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild tooltip={item.title}>
+									<SidebarMenuButton asChild tooltip={item.title} className={isActive ? "bg-muted text-primary font-semibold" : ""}>
 										<a href={item.url}>
 											{item.icon && <item.icon />}
 											<span>{item.title}</span>
@@ -145,7 +159,35 @@ export function AppSidebar({ ...props }) {
 				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter>
-
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<div className="flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent rounded-md px-2 py-1.5 transition group/settings">
+							<Avatar className="h-8 w-8">
+								<AvatarImage src={data.user.avatar} alt={data.user.name} />
+								<AvatarFallback>{data.user.name[0]}</AvatarFallback>
+							</Avatar>
+							<div className="flex flex-col text-left leading-tight">
+								<span className="text-sm font-medium">{data.user.name}</span>
+								<span className="text-xs text-muted-foreground">Admin</span>
+							</div>
+							<div className="flex flex-col ml-auto">
+								<SettingsIcon className="group-hover/settings:block opacity-0 group-hover/settings:opacity-100 transition-opacity duration-200" />
+							</div>
+						</div>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="w-48">
+						<DropdownMenuItem asChild>
+							<a href="/profile"><IconUser></IconUser>My Profile</a>
+						</DropdownMenuItem>
+						<DropdownMenuItem asChild>
+							<a href="/settings"><IconSettings></IconSettings>Settings</a>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem asChild>
+							<a href="/logout"><IconLogout></IconLogout>Logout</a>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</SidebarFooter>
 
 			<SidebarRail />
