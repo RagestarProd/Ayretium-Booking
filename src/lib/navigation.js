@@ -19,7 +19,7 @@ export const sidebarLinks = [
     children: [
       {
         label: "All Bookings",
-        path: "/dashboard/booking",
+        path: "/dashboard/test/current",
         title: "All Bookings",
       },
       {
