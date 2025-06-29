@@ -15,6 +15,8 @@ export async function GET(req) {
 
 		const data = await res.json()
 
+		console.log(data);
+
 		if (!res.ok) {
 			return new Response(JSON.stringify({ error: data }), { status: res.status })
 		}
