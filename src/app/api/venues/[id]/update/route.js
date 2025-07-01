@@ -5,8 +5,11 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-export async function POST(req) {
-
+export async function PUT(req, context) {
+	const params = await context.params;  // await params
+	const id = Number(params.id);
+	const body = await req.json();
+	const {visibilityStatus} = body;
 
 	try {
 		const session = await getServerSession(authOptions);
@@ -15,28 +18,18 @@ export async function POST(req) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const body = await req.json();
-		const { date, time, description } = body;
-
-		if (!date || !time) {
-			return NextResponse.json(
-				{ error: "Date and time are required" },
-				{ status: 400 }
-			);
-		}
-
-		const booking = await prisma.booking.create({
-			data: {
-				userId: session.user.id, // assumes session.user.id is available
-				date: new Date(date),
-				time,
-				description: description || "",
+		const venue = await prisma.venue.upsert({
+			where: { current_id: id },
+			update: { visible: visibilityStatus },
+			create: {
+				current_id: id,
+				visible: visibilityStatus,
 			},
 		});
+		return NextResponse.json(venue, { status: 201 });
 
-		return NextResponse.json(booking, { status: 201 });
 	} catch (error) {
-		console.error("Booking creation error:", error);
+		console.error("Error:", error);
 		return NextResponse.json(
 			{ error: "Internal Server Error" },
 			{ status: 500 }

@@ -3,6 +3,7 @@ import {
   IconDashboard,
   IconCalendarEvent,
   IconUsers,
+  IconBuildings,
 } from "@tabler/icons-react";
 
 export const sidebarLinks = [
@@ -26,6 +27,28 @@ export const sidebarLinks = [
         label: "New Booking",
         path: "/dashboard/booking/new",
         title: "Create Booking",
+      },
+    ],
+  },
+  {
+    label: "Venues",
+    icon: IconBuildings,
+    title: "Venues",
+    children: [
+      {
+        label: "All Venues",
+        path: "/dashboard/venue",
+        title: "All Venues",
+      },
+	  {
+        label: "Live Venues",
+        path: "/dashboard/venue/live",
+        title: "Live Venues",
+      },
+      {
+        label: "New Venue",
+        path: "/dashboard/venue/new",
+        title: "Create Venue",
       },
     ],
   },
