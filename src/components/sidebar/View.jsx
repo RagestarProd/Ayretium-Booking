@@ -81,7 +81,7 @@ export function AppSidebar({ pathname }) {
 										<CollapsibleTrigger asChild>
 											<SidebarMenuButton tooltip={item.title}>
 												{Icon && <Icon className="h-4 w-4" />}
-												<span>{item.title}</span>
+												<span>{item.label}</span>
 												<IconSquareChevronRight className="ml-auto hover:text-primary-foreground! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 											</SidebarMenuButton>
 										</CollapsibleTrigger>
@@ -96,7 +96,7 @@ export function AppSidebar({ pathname }) {
 																className={isActive ? "font-semibold text-sidebar-primary-foreground! hover:text-primary-foreground!" : "hover:text-primary-foreground!"}
 															>
 																<Link href={subItem.path}>
-																	<span>{subItem.title}</span>
+																	<span>{subItem.label}</span>
 																</Link>
 															</SidebarMenuSubButton>
 														</SidebarMenuSubItem>
@@ -111,7 +111,7 @@ export function AppSidebar({ pathname }) {
 									<SidebarMenuButton asChild tooltip={item.title} className={isActive ? "font-semibold text-sidebar-primary-foreground! hover:text-primary-foreground!" : "hover:text-primary-foreground!"}>
 										<Link href={item.path}>
 											{Icon && <Icon className="h-4 w-4" />}
-											<span>{item.title}</span>
+											<span>{item.label}</span>
 										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
@@ -150,7 +150,7 @@ export function AppSidebar({ pathname }) {
 						</DropdownMenuItem>
 						<DropdownMenuSeparator className="border-t border-sidebar-primary-foreground" />
 						<DropdownMenuItem asChild>
-							<Link href="#" asChild className="text-sidebar! hover:text-primary-foreground! group/logout" onClick={() => signOut({ callbackUrl: "/login" })}>
+							<Link href="#" className="text-sidebar! hover:text-primary-foreground! group/logout" onClick={() => signOut({ callbackUrl: "/login" })}>
 								<IconLogout className="text-sidebar group-hover/logout:text-primary-foreground!" />Logout
 							</Link>
 						</DropdownMenuItem>

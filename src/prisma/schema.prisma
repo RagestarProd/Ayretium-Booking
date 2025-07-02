@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model User {
   id            String		@id @default(cuid())
   name          String?
@@ -69,10 +67,19 @@ model Booking {
   updatedAt   DateTime @updatedAt
 }
 
+model VenueGroup {
+  id      Int      @id @default(autoincrement())
+  name    String
+  venues  Venue[]
+}
+
 model Venue {
   id          Int       @id @default(autoincrement())
   current_id  Int       @unique
   visible     Int 		@default(1)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  venueGroupId  Int?
+  venueGroup    VenueGroup?  @relation(fields: [venueGroupId], references: [id])
 }
