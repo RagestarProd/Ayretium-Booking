@@ -20,14 +20,12 @@ export default function VenueListWithPagination() {
 			try {
 
 				// Get venues from RMS
-				const res = await fetch(`/api/venues/import?page=${page}&per_page=50`)
+				const res = await fetch(`/api/venues/import?page=${page}&per_page=100`)
 				const result = await res.json()
 				if (!res.ok) throw new Error(result.message || 'Failed to fetch')
 
 				setVenues(result.data)
 				setTotalPages(result.meta.totalPages)
-
-				console.log(venues);
 			} catch (err) {
 				setError(err.message || 'Error')
 			} finally {
@@ -47,36 +45,36 @@ export default function VenueListWithPagination() {
 	}
 
 	// Clicked button to toggle venue visibility
-	const updateVenueField = async (id, { visibilityStatus }) => {
-		setActionLoading((prev) => ({ ...prev, [id]: true }))
-		setActionError((prev) => ({ ...prev, [id]: null }))
+	const updateVenueField = async (id, { visibilityStatus, name }) => {
+		setActionLoading((prev) => ({ ...prev, [id]: true }));
+		setActionError((prev) => ({ ...prev, [id]: null }));
 
 		try {
-
-			// Send update to DB
 			const res = await fetch(`/api/venues/${id}/update`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ visibilityStatus }),
-			})
+				body: JSON.stringify({ visibilityStatus, name }),  // <-- send name here
+			});
 
 			if (!res.ok) {
-				const errorData = await res.json()
-				throw new Error(errorData.error || 'Action failed')
+				const errorData = await res.json();
+				throw new Error(errorData.error || 'Action failed');
 			}
 
-			// Update venues var. Find the ID we just updated and set visibility
 			setVenues((prevVenues) =>
 				prevVenues.map((v) =>
 					v.id === id ? { ...v, visible: visibilityStatus } : v
 				)
-			)
+			);
 		} catch (err) {
-			setActionError((prev) => ({ ...prev, [id]: err.message || 'Error' }))
+			setActionError((prev) => ({ ...prev, [id]: err.message || 'Error' }));
 		} finally {
-			setActionLoading((prev) => ({ ...prev, [id]: false }))
+			setActionLoading((prev) => ({ ...prev, [id]: false }));
 		}
-	}
+	};
+
+
+
 	return (
 		<div className="p-6">
 			<h1 className="text-2xl font-bold mb-4">Current RMS Venues</h1>
@@ -87,9 +85,9 @@ export default function VenueListWithPagination() {
 				<p className="mb-4">Loading...</p>
 			) : (
 				<div>
-					<ul className="space-y-2 mb-6">
+					<ul className="mb-6 flex flex-wrap">
 						{venues.map((v) => (
-							<li key={v.id} className="border p-4 rounded flex justify-between items-center">
+							<li key={v.id} className="border p-4 m-3 rounded flex justify-between items-center w-md">
 								<div>
 									<strong>{v.name}</strong>
 									<br />
@@ -101,16 +99,15 @@ export default function VenueListWithPagination() {
 								{!v.visible ? (
 									<button
 										disabled={actionLoading[v.id]}
-										onClick={() => updateVenueField(v.id, { visibilityStatus: 1 })}
+										onClick={() => updateVenueField(v.id, { visibilityStatus: 1, name: v.name })}
 										className="ml-4 bg-green-500 text-white px-4 py-2 rounded disabled:opacity-50"
 									>
 										{actionLoading[v.id] ? 'Processing...' : 'Show In App'}
 									</button>
-
 								) : (
 									<button
 										disabled={actionLoading[v.id]}
-										onClick={() => updateVenueField(v.id, { visibilityStatus: 0 })}
+										onClick={() => updateVenueField(v.id, { visibilityStatus: 0, name: v.name })}
 										className="ml-4 bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
 									>
 										{actionLoading[v.id] ? 'Processing...' : 'Hide In App'}
@@ -118,6 +115,7 @@ export default function VenueListWithPagination() {
 								)}
 							</li>
 						))}
+
 					</ul>
 
 					<div className="flex justify-between">

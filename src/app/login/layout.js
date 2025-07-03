@@ -14,7 +14,7 @@ export default async function RootLayout({ children }) {
 	return (
 		<SessionWrapper>
 			{children}
-			<Toaster position="bottom-center" closeButton />
+			<Toaster position="top-center" closeButton />
 		</SessionWrapper>
 	);
 }

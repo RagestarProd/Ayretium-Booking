@@ -144,7 +144,7 @@ export function AppSidebar({ pathname }) {
 							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuItem asChild>
-							<Link href="/settings" className="text-sidebar! hover:text-primary-foreground! group/sett" >
+							<Link href="/dashboard/settings" className="text-sidebar! hover:text-primary-foreground! group/sett" >
 								<IconSettings className="text-sidebar group-hover/sett:text-primary-foreground!" />Settings
 							</Link>
 						</DropdownMenuItem>

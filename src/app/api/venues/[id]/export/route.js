@@ -6,10 +6,12 @@ const token = process.env.CURRENT_API_TOKEN
 const subdomain = process.env.NEXT_PUBLIC_CURRENT_SUBDOMAIN
 
 
-export async function POST(req) {
+export async function PUT(req, context) {
+	const params = await context.params;
+	const id = params.id;
 	const formData = await req.json()
 	const { name, street, city, county, postcode, country } = formData
-	const currentRmsApiUrl = 'https://api.current-rms.com/api/v1/members';
+	const currentRmsApiUrl = `https://api.current-rms.com/api/v1/members/${id}`;
 
 	//TODO AUTH CHECK
 
@@ -23,31 +25,22 @@ export async function POST(req) {
 
 	// Build payload
 	const payload = {
-		"membership_type": "Venue",
-		"name": name,
-		"primary_address_attributes": {
-			"street": street,
-			"postcode": postcode,
-			"city": city,
-			"county": county,
-			"country_id": country
-		},
-		"active": "1",
-		"bookable": "0",
-		"location_type": "1",
-		"sale_tax_class_id": "1",
-		"purchase_tax_class_id": "1",
-		"day_cost": "0.00",
-		"hour_cost": "0.00",
-		"distance_cost": "0.00",
-		"flat_rate_cost": "0.00"
+		"member": {
+			"name": name,
+			"primary_address_attributes": {
+				"street": street,
+				"postcode": postcode,
+				"city": city,
+				"county": county,
+				"country_id": country
+			}
+		}
 	}
-
 
 	try {
 		// Send to Current API
 		const res = await fetch(currentRmsApiUrl, {
-			method: 'POST',
+			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-Auth-Token': token,
@@ -60,20 +53,6 @@ export async function POST(req) {
 		const data = await res.json()
 
 		if (!res.ok) {
-			return new Response(JSON.stringify({ error: data }), { status: res.status })
-		}
-
-		try {
-			// Add venue to DB
-			await prisma.venue.create({
-				data: {
-					current_id: data.member.id,
-					visible: 1,
-					name: name
-				},
-			});
-
-		} catch (error) {
 			return new Response(JSON.stringify({ error: data }), { status: res.status })
 		}
 

@@ -12,7 +12,6 @@ export default async function Layout({ children }) {
 				defaultOpen={defaultOpen}
 			>
 				{children}
-				<Toaster position="bottom-center" closeButton />
 			</SidebarWrapper>
 	);
 }

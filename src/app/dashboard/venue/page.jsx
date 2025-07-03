@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { IconEdit, IconTrash, IconBuildingCommunity } from '@tabler/icons-react'
+import { useRouter } from "next/navigation";
 
 export default function VenueListWithPagination() {
 	const [venues, setVenues] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
-
 	const [page, setPage] = useState(1)
 	const [totalPages, setTotalPages] = useState(1)
+	const router = useRouter();
 
 	useEffect(() => {
 		const fetchVenues = async () => {
@@ -16,7 +19,7 @@ export default function VenueListWithPagination() {
 			setError(null)
 
 			try {
-				const res = await fetch(`/api/venues?page=${page}&per_page=50`)
+				const res = await fetch(`/api/venues?page=${page}&per_page=10`)
 				const result = await res.json()
 
 				if (!res.ok) throw new Error(result.message || 'Failed to fetch')
@@ -48,69 +51,92 @@ export default function VenueListWithPagination() {
 			{error && <p className="text-red-500 mb-4">Error: {error}</p>}
 
 			{loading ? (
-				<p className="mb-4">Loading...</p>
+				<p>Loading venues...</p>
+			) : venues.length === 0 ? (
+				<p>No venues found.</p>
 			) : (
-				<div>
-					<ul className="space-y-2 mb-6">
-						{venues.map((v) => (
-							<li key={v.id}>
-								<div className="border p-4 rounded mb-4">
-									<h2 className="text-lg font-semibold mb-2">{v.name || '--DELETED VENUE--'}</h2>
 
-									<p><strong>ID:</strong> {v.id}</p>
-									<p><strong>Current ID:</strong> {v.current_id}</p>
-									<p><strong>Visible:</strong> {v.visible}</p>
-									<p><strong>Created At:</strong> {new Date(v.createdAt).toLocaleString()}</p>
-									<p><strong>Updated At:</strong> {new Date(v.updatedAt).toLocaleString()}</p>
-									<p><strong>Venue Group ID:</strong> {v.venueGroupId ?? 'None'}</p>
-
-									<div className="mt-4">
-										<h3 className="font-semibold">Primary Address</h3>
-										{v.primary_address ? (
-											<div className="text-sm mt-1 space-y-1">
-												<p><strong>Name:</strong> {v.primary_address.name}</p>
-												<p><strong>Street:</strong> {v.primary_address.street}</p>
-												<p><strong>City:</strong> {v.primary_address.city}</p>
-												<p><strong>County:</strong> {v.primary_address.county}</p>
-												<p><strong>Postcode:</strong> {v.primary_address.postcode}</p>
-												<p><strong>Country:</strong> {v.primary_address.country_name}</p>
-												<p><strong>Type:</strong> {v.primary_address.address_type_name}</p>
-												<p><strong>Created At:</strong> {new Date(v.primary_address.created_at).toLocaleString()}</p>
-												<p><strong>Updated At:</strong> {new Date(v.primary_address.updated_at).toLocaleString()}</p>
-											</div>
-										) : (
-											<p className="text-sm text-gray-500">No address data available</p>
-										)}
+				<div className="rounded-md border overflow-hidden">
+					<table className="w-full text-sm">
+						<thead className="bg-border">
+							<tr className="text-left">
+								<th className="px-4 py-2">Venue Name</th>
+								<th className="px-4 py-2"><div className="flex items-center gap-2">
+									<IconBuildingCommunity className="w-4 h-4" />
+									Primary Address
+								</div></th>
+								<th className="px-4 py-2 text-right">
+									<div className="items-center gap-2">
+										Actions
 									</div>
-								</div>
-
-							</li>
-						))}
-					</ul>
-
-					<div className="flex justify-between">
-						<button
-							onClick={handlePrev}
-							disabled={page <= 1}
-							className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-						>
-							Previous
-						</button>
-
-						<span className="text-sm text-gray-600">
-							Page {page} of {totalPages}
-						</span>
-
-						<button
-							onClick={handleNext}
-							disabled={page >= totalPages}
-							className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-						>
-							Next
-						</button>
-					</div>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{venues.map((v) => (
+								<tr key={v.id} className="border-t hover:bg-border/20">
+									<td className="px-4 py-3 font-medium">{v.name || '--DELETED VENUE--'}</td>
+									<td className="px-4 py-3 text-sm">
+										{v.primary_address ? (
+											<>
+												<p>{v.primary_address.name}</p>
+												<p>{v.primary_address.street}</p>
+												<p>{v.primary_address.city}</p>
+												<p>{v.primary_address.county}</p>
+												<p>{v.primary_address.postcode}</p>
+												<p>{v.primary_address.country_name}</p>
+												<p>{v.primary_address.address_type_name}</p>
+											</>
+										) : (
+											<span className="text-gray-500">No address data</span>
+										)}
+									</td>
+									<td className="px-4 py-3 space-x-2">
+										<Button
+											size="icon"
+											variant="ghost"
+											onClick={() => router.push(`/dashboard/venue/${v.id}/update`)}
+											className="text-background hover:text-white"
+										>
+											<IconEdit className="w-4 h-4" />
+										</Button>
+										<Button
+											size="icon"
+											variant="ghost"
+											onClick={() => router.push(`/venue/edit/${v.id}`)}
+											className="text-primary hover:text-white"
+										>
+											<IconTrash />
+										</Button>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</div>
 			)}
+
+			<div className="flex justify-between mt-6">
+				<Button
+					onClick={handlePrev}
+					disabled={page <= 1}
+					className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+				>
+					Previous
+				</Button>
+
+				<span className="text-sm text-gray-600">
+					Page {page} of {totalPages}
+				</span>
+
+				<Button
+					onClick={handleNext}
+					disabled={page >= totalPages}
+					className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+				>
+					Next
+				</Button>
+			</div>
 		</div>
 	)
 }

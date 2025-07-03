@@ -8,28 +8,19 @@ import { Button } from "@/components/ui/button";
 import VenueSelect from "@/components/VenueSelect";
 import { toast } from "sonner";
 
-export default function VenueGroupForm({ initialData }) {
+export default function VenueRoomForm({ initialData }) {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
 
-	// Form states
+	// Controlled state for form inputs, initialized from initialData or empty
 	const [name, setName] = useState(initialData?.name || "");
-	// This will hold an array of selected venue IDs
-	const [selectedVenueIds, setSelectedVenueIds] = useState(
-		Array.isArray(initialData?.venues)
-			? initialData.venues.map((v) => v.id)
-			: []
-	);
+	const [selectedVenueId, setSelectedVenueId] = useState(initialData?.venueId || null);
 
-	// Sync if initialData changes (optional)
+	// Optional: sync state if initialData changes (rare, but good practice)
 	useEffect(() => {
 		if (initialData) {
 			setName(initialData.name || "");
-			setSelectedVenueIds(
-				Array.isArray(initialData.venues)
-					? initialData.venues.map((v) => v.id)
-					: []
-			);
+			setSelectedVenueId(initialData.venueId || null);
 		}
 	}, [initialData]);
 
@@ -39,13 +30,15 @@ export default function VenueGroupForm({ initialData }) {
 
 		const data = {
 			name,
-			venueIds: selectedVenueIds,
+			venueID: selectedVenueId,
 		};
 
+		// Use PATCH for update, POST for create
 		const method = initialData?.id ? "PATCH" : "POST";
+
 		const url = initialData?.id
-			? `/api/venues/groups/${initialData.id}`
-			: "/api/venues/groups";
+			? `/api/venues/rooms/${initialData.id}`
+			: "/api/venues/rooms";
 
 		try {
 			const res = await fetch(url, {
@@ -56,45 +49,43 @@ export default function VenueGroupForm({ initialData }) {
 				body: JSON.stringify(data),
 			});
 
+			setLoading(false);
+
 			if (res.ok) {
-				toast.success(initialData ? "Venue group updated" : "Venue group created");
-				router.push("/dashboard/venue/group");
+				toast.success(initialData ? "Venue room updated" : "New venue room successfully added");
+				router.push("/dashboard/venue/room");
 			} else {
 				const errorData = await res.json();
-				toast.error(errorData.error?.message || "Failed to save venue group");
+				toast.error(errorData.error?.message || "Failed to save venue room");
 			}
-		} catch (err) {
-			toast.error(err.message || "Unexpected error");
-		} finally {
+		} catch (error) {
 			setLoading(false);
+			toast.error("Network error. Please try again.");
 		}
-
 	}
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl p-4 pt-0">
 			<div className="space-y-2">
-				<Label htmlFor="name">Group Name</Label>
+				<Label htmlFor="name">Room Name</Label>
 				<Input
 					name="name"
-					placeholder="Venue Group Name"
+					placeholder="Name"
 					required
 					value={name}
 					onChange={(e) => setName(e.target.value)}
 				/>
 			</div>
 
-			<div>
-				<Label>Venues</Label>
-				<VenueSelect
-					mode="multiselect"
-					onVenueSelect={setSelectedVenueIds}
-					selectedIdss={selectedVenueIds}
-				/>
-			</div>
+			<VenueSelect
+				mode="singleselect"
+				onVenueSelect={setSelectedVenueId}
+				selectedIds={selectedVenueId ? [selectedVenueId] : []}
+				initialVenueId={initialData?.venueId}
+			/>
 
 			<Button type="submit" disabled={loading}>
-				{loading ? (initialData ? "Updating..." : "Adding...") : (initialData ? "Update Group" : "Add Group")}
+				{loading ? (initialData ? "Updating..." : "Adding...") : (initialData ? "Update Room" : "Add Room")}
 			</Button>
 		</form>
 	);

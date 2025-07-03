@@ -4,7 +4,8 @@ import {
 	IconCalendarEvent,
 	IconUsers,
 	IconBuildings,
-	IconBuildingStore
+	IconBuildingStore,
+	IconDoor
 } from "@tabler/icons-react";
 
 export const sidebarLinks = [
@@ -71,8 +72,25 @@ export const sidebarLinks = [
 		],
 	},
 	{
+		label: "Rooms",
+		icon: IconDoor,
+		title: "Rooms",
+		children: [
+			{
+				label: "All Rooms",
+				path: "/dashboard/venue/room",
+				title: "All Rooms",
+			},
+			{
+				label: "New Room",
+				path: "/dashboard/venue/room/new",
+				title: "New Rooms",
+			}
+		],
+	},
+	{
 		label: "Users",
-		path: "/settings",
+		path: "/dashboard/users",
 		icon: IconUsers,
 		title: "User Settings",
 	},

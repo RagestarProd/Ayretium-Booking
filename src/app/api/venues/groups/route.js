@@ -1,7 +1,4 @@
-
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import prisma from '@/lib/prisma'
 
 // Get all venue groups from DB
 export async function GET() {
@@ -10,6 +7,7 @@ export async function GET() {
 			venues: true,
 		},
 	});
+
 	return new Response(JSON.stringify(venueGroups), {
 		headers: { 'Content-Type': 'application/json' },
 	})
@@ -29,10 +27,10 @@ export async function POST(req) {
 		// Update all venues with venue group
 		await prisma.venue.updateMany({
 			where: {
-				id: { in: venueIDs }
+				id: { in: venueIds }
 			},
 			data: {
-				venueGroupId: newGroup.id,
+				venueGroupId: newGroup.id
 			},
 		});
 

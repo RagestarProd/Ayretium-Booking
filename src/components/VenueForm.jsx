@@ -1,33 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Select, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select"
-import { toast } from "sonner"
-import { CountryList } from "@/components/CountryList"
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
+import { toast } from "sonner";
+import { CountryList } from "@/components/CountryList";
 
-
-export default function VenueForm() {
+export default function VenueForm({ initialData }) {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
-	const [country, setCountry] = useState("1")
+
+	// Controlled country state defaults to initialData.country or '1'
+	const [country, setCountry] = useState(initialData?.country || "1");
+
+	// When initialData changes (or on mount), update country state accordingly
+	useEffect(() => {
+		if (initialData?.country) {
+			setCountry(initialData.country);
+		}
+	}, [initialData]);
 
 	async function handleSubmit(e) {
 		e.preventDefault();
 		setLoading(true);
 
-		// Get form data
 		const form = e.currentTarget;
 		const formData = new FormData(form);
 		const data = Object.fromEntries(formData.entries());
 
-		// Send form data to API
-		const res = await fetch("/api/venues/add", {
-			method: "POST",
+		// Decide method and URL based on initialData presence
+		const method = initialData ? "PUT" : "POST";
+		const url = initialData ? `/api/venues/${initialData.current_id}/export` : "/api/venues/add";
+
+		const res = await fetch(url, {
+			method,
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -37,34 +47,63 @@ export default function VenueForm() {
 		setLoading(false);
 
 		if (res.ok) {
-			toast.success("New venue successfully added");
+			toast.success(initialData ? "Venue updated successfully" : "New venue successfully added");
 			router.push("/dashboard/venue");
 		} else {
-			const data = await res.json();
-			toast.error(data.error.message || "Failed to create venue");
+			const errData = await res.json();
+			toast.error(errData.error?.message || "Failed to save venue");
 		}
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl p-4">
+		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl p-4 pt-0">
 			<div className="space-y-2">
-				<Label htmlFor="street">Venue Name</Label>
-				<Input name="name" placeholder="Name" required />
+				<Label htmlFor="name">Venue Name</Label>
+				<Input
+					name="name"
+					placeholder="Name"
+					required
+					defaultValue={initialData?.name || ""}
+					id="name"
+				/>
 			</div>
 
 			<div className="space-y-2">
 				<Label htmlFor="street">Primary address</Label>
-				<Textarea name="street" placeholder="Street" required />
+				<Textarea
+					name="street"
+					placeholder="Street"
+					required
+					defaultValue={initialData?.street || ""}
+					id="street"
+				/>
 			</div>
 
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-				<Input name="city" placeholder="City" required />
-				<Input name="county" placeholder="County" />
-				<Input name="postcode" placeholder="Postcode" required />
+				<Input
+					name="city"
+					placeholder="City"
+					required
+					defaultValue={initialData?.city || ""}
+					id="city"
+				/>
+				<Input
+					name="county"
+					placeholder="County"
+					defaultValue={initialData?.county || ""}
+					id="county"
+				/>
+				<Input
+					name="postcode"
+					placeholder="Postcode"
+					required
+					defaultValue={initialData?.postcode || ""}
+					id="postcode"
+				/>
 			</div>
 
 			<div className="space-y-2">
-				<Select id="country" value={country} onValueChange={setCountry} required>
+				<Select id="country" value={country.toString()} onValueChange={setCountry} required>
 					<SelectTrigger>
 						<SelectValue placeholder="Select a country" />
 					</SelectTrigger>
@@ -74,10 +113,12 @@ export default function VenueForm() {
 				</Select>
 			</div>
 
+			{/* Hidden input to send country value in form submission */}
 			<input type="hidden" name="country" value={country} />
 
-			<Button type="submit" disabled={loading}>{loading ? 'Adding...' : 'Add Venue'}</Button>
-
+			<Button type="submit" disabled={loading}>
+				{loading ? (initialData ? "Updating..." : "Adding...") : (initialData ? "Update Venue" : "Add Venue")}
+			</Button>
 		</form>
 	);
 }

@@ -1,8 +1,7 @@
 // API - Get all venues from RMS and combine with DB data
 
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 
-const prisma = new PrismaClient()
 const token = process.env.CURRENT_API_TOKEN
 const subdomain = process.env.NEXT_PUBLIC_CURRENT_SUBDOMAIN
 
@@ -35,7 +34,9 @@ export async function GET(req) {
 		}
 
 		// Get all venues from DB
-		const dbVenues = await prisma.venue.findMany()
+		const dbVenues = await prisma.venue.findMany({
+			select: { id: true, current_id: true, name: true }
+		})
 
 		// Map DB venues to array keyed with RMS ID
 		const dbVenueMap = new Map(dbVenues.map((v) => [v.current_id, v]))

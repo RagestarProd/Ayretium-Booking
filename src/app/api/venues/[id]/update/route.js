@@ -1,39 +1,35 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "/src/app/api/auth/[...nextauth]/route"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import prisma from '@/lib/prisma'
 
 export async function PUT(req, context) {
 	const params = await context.params;
 	const id = Number(params.id);
 	const body = await req.json();
-	const {visibilityStatus} = body;
+	const { visibilityStatus, name } = body;  // <-- include name
 
 	try {
-
-		// AUTH TODO (just checks is user logged in)
 		const session = await getServerSession(authOptions);
 		if (!session || !session.user || !session.user.id) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		// Update (or insert) venue in DB
 		const venue = await prisma.venue.upsert({
 			where: { current_id: id },
-			update: { visible: visibilityStatus },
+			update: {
+				visible: visibilityStatus,
+				name,             // <-- update name
+			},
 			create: {
 				current_id: id,
 				visible: visibilityStatus,
+				name,             // <-- create name
 			},
 		});
-		return NextResponse.json(venue, { status: 201 });
 
+		return NextResponse.json(venue, { status: 201 });
 	} catch (error) {
-		return NextResponse.json(
-			{ error: "Internal Server Error" },
-			{ status: 500 }
-		);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
 }
