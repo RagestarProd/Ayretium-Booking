@@ -19,10 +19,11 @@ export const sidebarLinks = [
 		label: "Bookings",
 		icon: IconCalendarEvent,
 		title: "Bookings",
+		path: "/dashboard/booking",
 		children: [
 			{
 				label: "All Bookings",
-				path: "/dashboard/test/current",
+				path: "/dashboard/booking",
 				title: "All Bookings",
 			},
 			{
@@ -36,6 +37,7 @@ export const sidebarLinks = [
 		label: "Organisations",
 		icon: IconBuildings,
 		title: "Organisations",
+		path: "/dashboard/venue/group",
 		children: [
 			{
 				label: "All Organisations",
@@ -53,6 +55,7 @@ export const sidebarLinks = [
 		label: "Venues",
 		icon: IconBuildingStore,
 		title: "Venues",
+		path: "/dashboard/venue",
 		children: [
 			{
 				label: "All Venues",
@@ -75,6 +78,7 @@ export const sidebarLinks = [
 		label: "Rooms",
 		icon: IconDoor,
 		title: "Rooms",
+		path: "/dashboard/venue/room",
 		children: [
 			{
 				label: "All Rooms",
@@ -92,6 +96,18 @@ export const sidebarLinks = [
 		label: "Users",
 		path: "/dashboard/users",
 		icon: IconUsers,
-		title: "User Settings",
+		title: "Users",
+		children: [
+			{
+				label: "All Users",
+				path: "/dashboard/users",
+				title: "All Users",
+			},
+			{
+				label: "New User",
+				path: "/dashboard/users/new",
+				title: "New User",
+			}
+		],
 	},
 ];

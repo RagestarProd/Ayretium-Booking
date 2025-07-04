@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 import { IconEdit, IconTrash, IconBuildingStore, IconSearch } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from 'framer-motion'
+import DeleteButton from '@/components/DeleteButton'
 
 export default function VenueGroupPage() {
 	const [venueOrganisations, setVenueOrganisations] = useState([])
@@ -12,6 +14,7 @@ export default function VenueGroupPage() {
 	const [error, setError] = useState(null)
 	const [selectedVenueId, setSelectedVenueId] = useState('all')
 	const router = useRouter()
+	const [deletingGroupId, setDeletingGroupId] = useState(null)
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -20,9 +23,7 @@ export default function VenueGroupPage() {
 
 			try {
 				const [venueGroupRes] = await Promise.all([
-					fetch(`/api/venues/groups`),
-					// Remove separate venues fetch unless needed separately
-					// fetch(`/api/venues`),
+					fetch(`/api/venues/groups`)
 				])
 
 				if (!venueGroupRes.ok) throw new Error('Failed to fetch venue groups')
@@ -54,6 +55,49 @@ export default function VenueGroupPage() {
 		: venueOrganisations.filter(org =>
 			org.venues?.some(venue => String(venue.id) === selectedVenueId)
 		)
+
+
+	// delete animation config
+	const rowVariants = {
+		initial: {
+			opacity: 1,
+			scale: 1,
+			backgroundColor: 'transparent',
+			height: 'auto',
+			paddingTop: '0.75rem',
+			paddingBottom: '0.75rem',
+			marginTop: 0,
+			marginBottom: 0,
+		},
+		flashRed: {
+			backgroundColor: '#f87171',
+			transition: {
+				backgroundColor: {
+					duration: 0.25,
+					yoyo: 1,
+				},
+			},
+		},
+		exit: {
+			scale: 0.8,
+			opacity: 0,
+			height: 0,
+			paddingTop: 0,
+			paddingBottom: 0,
+			marginTop: 0,
+			marginBottom: 0,
+			transition: { duration: 0.5 },
+		},
+	}
+
+	// delete animation
+	const handleDeleteAnimation = (id) => {
+		setDeletingGroupId(id)
+		setTimeout(() => {
+			setVenueOrganisations((prev) => prev.filter((r) => r.id !== id))
+			setDeletingGroupId(null)
+		}, 750)
+	}
 
 	return (
 		<div className="p-6">
@@ -114,42 +158,61 @@ export default function VenueGroupPage() {
 							</tr>
 						)}
 
-						{filteredOrganisations.map(org => (
-							<tr key={org.id} className="border-t hover:bg-border/20">
-								<td className="px-4 py-3 font-medium">{org.name}</td>
+						<AnimatePresence initial={false}>
 
-								<td className="px-4 py-3 text-muted-foreground">
-									{org.venues && org.venues.length > 0 ? (
-										<ul className="list-disc list-inside space-y-1">
-											{org.venues.map(venue => (
-												<li key={venue.id}>{venue.name || `Venue #${venue.id}`}</li>
-											))}
-										</ul>
-									) : (
-										<em>No venues assigned</em>
-									)}
-								</td>
+							{filteredOrganisations.map((org) => {
+								const isDeleting = deletingGroupId === org.id
+								return (
+									<motion.tr
+										key={org.id}
+										initial="initial"
+										animate={isDeleting ? 'flashRed' : 'initial'}
+										exit="exit"
+										variants={rowVariants}
+										className="border-t hover:bg-border/20"
+										transition={{
+											backgroundColor: { duration: 0.25, yoyo: 1 },
+											scale: { duration: 0.5, delay: isDeleting ? 0.25 : 0 },
+											height: { duration: 0.5, delay: isDeleting ? 0.25 : 0 },
+											paddingTop: { duration: 0.5, delay: isDeleting ? 0.25 : 0 },
+											paddingBottom: { duration: 0.5, delay: isDeleting ? 0.25 : 0 },
+											marginTop: { duration: 0.5, delay: isDeleting ? 0.25 : 0 },
+											marginBottom: { duration: 0.5, delay: isDeleting ? 0.25 : 0 },
+										}}
+									>
+										<td className="px-4 py-3 font-medium">{org.name}</td>
 
-								<td className="px-4 py-3 text-right space-x-2">
-									<Button
-										size="icon"
-										variant="ghost"
-										onClick={() => router.push(`/dashboard/venue/group/${org.id}/update`)}
-										className="text-background hover:text-white"
-									>
-										<IconEdit className="w-4 h-4" />
-									</Button>
-									<Button
-										size="icon"
-										variant="ghost"
-										onClick={() => router.push(`/rooms/edit/${org.id}`)}
-										className="text-primary hover:text-white"
-									>
-										<IconTrash />
-									</Button>
-								</td>
-							</tr>
-						))}
+										<td className="px-4 py-3 text-muted-foreground">
+											{org.venues && org.venues.length > 0 ? (
+												<ul className="list-disc list-inside space-y-1">
+													{org.venues.map(venue => (
+														<li key={venue.id}>{venue.name || `Venue #${venue.id}`}</li>
+													))}
+												</ul>
+											) : (
+												<em>No venues assigned</em>
+											)}
+										</td>
+
+										<td className="px-4 py-3 text-right space-x-2">
+											<Button
+												size="icon"
+												variant="ghost"
+												onClick={() => router.push(`/dashboard/venue/group/${org.id}/update`)}
+												className="text-background hover:text-white"
+											>
+												<IconEdit className="w-4 h-4" />
+											</Button>
+											<DeleteButton
+												delUrl={`/api/venues/groups/${org.id}`}
+												item={org}
+												onDeleted={() => handleDeleteAnimation(org.id)}
+											/>
+										</td>
+									</motion.tr>
+								)
+							})}
+						</AnimatePresence>
 					</tbody>
 				</table>
 			</div>

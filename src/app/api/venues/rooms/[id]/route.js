@@ -91,3 +91,26 @@ export async function POST(request) {
 		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
 	}
 }
+
+// Hard delete a venue room by ID
+export async function DELETE(request, context) {
+	const params = await context.params;
+	const { id } = params;
+
+	const roomId = Number(id);
+	if (isNaN(roomId)) {
+		return new Response(JSON.stringify({ error: "Invalid room id" }), { status: 400 });
+	}
+
+	try {
+		const deletedRoom = await prisma.venueRoom.delete({
+			where: { id: roomId },
+		});
+
+		return new Response(JSON.stringify({ success: true, room: deletedRoom }), {
+			headers: { "Content-Type": "application/json" },
+		});
+	} catch (err) {
+		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+	}
+}

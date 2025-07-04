@@ -11,9 +11,8 @@ import { toast } from "sonner";
 export default function VenueGroupForm({ initialData }) {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
-
-	// Form states
 	const [name, setName] = useState(initialData?.name || "");
+
 	// This will hold an array of selected venue IDs
 	const [selectedVenueIds, setSelectedVenueIds] = useState(
 		Array.isArray(initialData?.venues)
@@ -21,7 +20,7 @@ export default function VenueGroupForm({ initialData }) {
 			: []
 	);
 
-	// Sync if initialData changes (optional)
+	// Sync if initialData changes
 	useEffect(() => {
 		if (initialData) {
 			setName(initialData.name || "");
@@ -33,6 +32,7 @@ export default function VenueGroupForm({ initialData }) {
 		}
 	}, [initialData]);
 
+	// On form submit
 	async function handleSubmit(e) {
 		e.preventDefault();
 		setLoading(true);
@@ -42,12 +42,14 @@ export default function VenueGroupForm({ initialData }) {
 			venueIds: selectedVenueIds,
 		};
 
+		// If initial data (then we are editing) so use patch, otherwise post for new
 		const method = initialData?.id ? "PATCH" : "POST";
 		const url = initialData?.id
 			? `/api/venues/groups/${initialData.id}`
 			: "/api/venues/groups";
 
 		try {
+			// Submit
 			const res = await fetch(url, {
 				method,
 				headers: {
@@ -57,11 +59,11 @@ export default function VenueGroupForm({ initialData }) {
 			});
 
 			if (res.ok) {
-				toast.success(initialData ? "Venue group updated" : "Venue group created");
+				toast.success(initialData ? "Organisation updated" : "Organisation created");
 				router.push("/dashboard/venue/group");
 			} else {
 				const errorData = await res.json();
-				toast.error(errorData.error?.message || "Failed to save venue group");
+				toast.error(errorData.error?.message || "Failed to save organisation");
 			}
 		} catch (err) {
 			toast.error(err.message || "Unexpected error");
@@ -74,10 +76,10 @@ export default function VenueGroupForm({ initialData }) {
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl p-4 pt-0">
 			<div className="space-y-2">
-				<Label htmlFor="name">Group Name</Label>
+				<Label htmlFor="name">Organisation Name</Label>
 				<Input
 					name="name"
-					placeholder="Venue Group Name"
+					placeholder="Organisation Name"
 					required
 					value={name}
 					onChange={(e) => setName(e.target.value)}
@@ -85,7 +87,6 @@ export default function VenueGroupForm({ initialData }) {
 			</div>
 
 			<div>
-				<Label>Venues</Label>
 				<VenueSelect
 					mode="multiselect"
 					onVenueSelect={setSelectedVenueIds}
@@ -94,7 +95,7 @@ export default function VenueGroupForm({ initialData }) {
 			</div>
 
 			<Button type="submit" disabled={loading}>
-				{loading ? (initialData ? "Updating..." : "Adding...") : (initialData ? "Update Group" : "Add Group")}
+				{loading ? (initialData ? "Updating..." : "Adding...") : (initialData ? "Update Organisation" : "Add Organisation")}
 			</Button>
 		</form>
 	);

@@ -112,3 +112,28 @@ export async function PATCH(request, context) {
 		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
 	}
 }
+
+
+
+// Hard delete a venue group by ID
+export async function DELETE(request, context) {
+	const params = await context.params;
+	const { id } = params;
+
+	const groupId = Number(id);
+	if (isNaN(groupId)) {
+		return new Response(JSON.stringify({ error: "Invalid org id" }), { status: 400 });
+	}
+
+	try {
+		const deletedGroup = await prisma.venueGroup.delete({
+			where: { id: groupId },
+		});
+
+		return new Response(JSON.stringify({ success: true, org: deletedGroup }), {
+			headers: { "Content-Type": "application/json" },
+		});
+	} catch (err) {
+		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+	}
+}

@@ -15,10 +15,13 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from 'date-fns'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { IconEdit, IconTrash, IconBuildingCommunity } from '@tabler/icons-react'
+import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
 	const [users, setUsers] = useState([]);
 	const [loading, setLoading] = useState(true);
+
+	const router = useRouter();
 
 	// Fetch users from API
 	useEffect(() => {
@@ -80,11 +83,7 @@ export default function UsersPage() {
 						<TableRow key={user.id}>
 							<TableCell className="flex items-center gap-3">
 								<Avatar>
-									{user.avatarUrl ? (
-										<AvatarImage src={user.avatarUrl} alt={`${user.name} avatar`} />
-									) : (
-										<AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
-									)}
+									<AvatarImage src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user.id)}`} />
 								</Avatar>
 								<div>{user.name || "Unnamed User"}</div>
 							</TableCell>

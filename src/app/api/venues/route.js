@@ -9,7 +9,7 @@ const subdomain = process.env.NEXT_PUBLIC_CURRENT_SUBDOMAIN
 export async function GET(req) {
 	const { searchParams } = new URL(req.url)
 	const page = parseInt(searchParams.get('page') || '1', 10)
-	const perPage = parseInt(searchParams.get('per_page') || '20', 10)
+	const perPage = parseInt(searchParams.get('per_page') || '100', 10)
 	const skip = (page - 1) * perPage
 
 	// Get all visible venues from DB
@@ -18,7 +18,7 @@ export async function GET(req) {
 			where: { visible: 1 },
 			skip,
 			take: perPage,
-			select: { id: true, current_id: true, name: true }
+			select: { id: true, current_id: true, name: true, venueGroupId: true }
 
 		}),
 		prisma.venue.count({

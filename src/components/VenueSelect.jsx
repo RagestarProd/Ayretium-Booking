@@ -19,13 +19,12 @@ export default function VenueSelect({
 	const isEditMode = selectedIdss.length > 0
 	const initialIds = selectedIdss.map((v) => (typeof v === 'object' ? v.id : v))
 
-	// Load venues and initial values
 	useEffect(() => {
 		const fetchVenues = async () => {
 			try {
-				const res = await fetch('/api/venues')
+				// Get all venues
+				const res = await fetch('/api/venues/db')
 				const data = await res.json()
-				console.log(data);
 				setVenues(data.data)
 			} catch (err) {
 				console.error('Error fetching venues:', err)
