@@ -1,6 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import {
+	Table,
+	TableHeader,
+	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 
 export default function VenueListWithPagination() {
 	const [venues, setVenues] = useState([])
@@ -16,15 +25,17 @@ export default function VenueListWithPagination() {
 		const fetchVenues = async () => {
 			setLoading(true)
 			setError(null)
-
 			try {
-
-				// Get venues from RMS
 				const res = await fetch(`/api/venues/import?page=${page}&per_page=100`)
 				const result = await res.json()
 				if (!res.ok) throw new Error(result.message || 'Failed to fetch')
 
-				setVenues(result.data)
+				setVenues(
+					result.data.map(v => ({
+						...v,
+						visible: v.visible === true || v.visible === 1 ? true : false,  // Force boolean
+					}))
+				)
 				setTotalPages(result.meta.totalPages)
 			} catch (err) {
 				setError(err.message || 'Error')
@@ -32,114 +43,121 @@ export default function VenueListWithPagination() {
 				setLoading(false)
 			}
 		}
-
 		fetchVenues()
 	}, [page])
 
-	const handleNext = () => {
-		if (page < totalPages) setPage((p) => p + 1)
-	}
+	const handleNext = () => page < totalPages && setPage(p => p + 1)
+	const handlePrev = () => page > 1 && setPage(p => p - 1)
 
-	const handlePrev = () => {
-		if (page > 1) setPage((p) => p - 1)
-	}
-
-	// Clicked button to toggle venue visibility
 	const updateVenueField = async (id, { visibilityStatus, name }) => {
-		setActionLoading((prev) => ({ ...prev, [id]: true }));
-		setActionError((prev) => ({ ...prev, [id]: null }));
+		setActionLoading(prev => ({ ...prev, [id]: true }))
+		setActionError(prev => ({ ...prev, [id]: null }))
 
 		try {
 			const res = await fetch(`/api/venues/${id}/update`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ visibilityStatus, name }),  // <-- send name here
-			});
+				body: JSON.stringify({ visibilityStatus, name }),
+			})
 
 			if (!res.ok) {
-				const errorData = await res.json();
-				throw new Error(errorData.error || 'Action failed');
+				const errorData = await res.json()
+				throw new Error(errorData.error || 'Action failed')
 			}
 
-			setVenues((prevVenues) =>
-				prevVenues.map((v) =>
-					v.id === id ? { ...v, visible: visibilityStatus } : v
-				)
-			);
-		} catch (err) {
-			setActionError((prev) => ({ ...prev, [id]: err.message || 'Error' }));
-		} finally {
-			setActionLoading((prev) => ({ ...prev, [id]: false }));
-		}
-	};
+			setVenues(
+				result.data.map(v => ({
+					...v,
+					visible: v.visible === true || v.visible === 1 ? true : false,  // Force boolean
+				}))
+			)
 
+		} catch (err) {
+			setActionError(prev => ({ ...prev, [id]: err.message || 'Error' }))
+		} finally {
+			setActionLoading(prev => ({ ...prev, [id]: false }))
+		}
+	}
 
 
 	return (
 		<div className="p-6">
-			<h1 className="text-2xl font-bold mb-4">Current RMS Venues</h1>
-
-			{error && <p className="text-red-500 mb-4">Error: {error}</p>}
-
+			<h1 className="text-lg font-medium mb-4">Current RMS Venues</h1>
+			{error && <p className="text-red-500 mb-2">Error: {error}</p>}
 			{loading ? (
-				<p className="mb-4">Loading...</p>
+				<p>Loading...</p>
 			) : (
-				<div>
-					<ul className="mb-6 flex flex-wrap">
-						{venues.map((v) => (
-							<li key={v.id} className="border p-4 m-3 rounded flex justify-between items-center w-md">
-								<div>
-									<strong>{v.name}</strong>
-									<br />
-									{v.primary_address?.city || 'No city'}
-									{actionError[v.id] && (
-										<p className="text-red-500 text-sm mt-1">{actionError[v.id]}</p>
-									)}
-								</div>
-								{!v.visible ? (
-									<button
-										disabled={actionLoading[v.id]}
-										onClick={() => updateVenueField(v.id, { visibilityStatus: 1, name: v.name })}
-										className="ml-4 bg-green-500 text-white px-4 py-2 rounded disabled:opacity-50"
-									>
-										{actionLoading[v.id] ? 'Processing...' : 'Show In App'}
-									</button>
-								) : (
-									<button
-										disabled={actionLoading[v.id]}
-										onClick={() => updateVenueField(v.id, { visibilityStatus: 0, name: v.name })}
-										className="ml-4 bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
-									>
-										{actionLoading[v.id] ? 'Processing...' : 'Hide In App'}
-									</button>
-								)}
-							</li>
-						))}
+				<>
+					<Table className="text-sm">
+						<TableHeader>
+							<TableRow>
+								<TableHead className="px-2 py-1">Name</TableHead>
+								<TableHead className="px-2 py-1">City</TableHead>
+								<TableHead className="px-2 py-1">Visibility</TableHead>
+								<TableHead className="px-2 py-1"></TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{venues.map(v => (
+								<TableRow key={v.id}>
+									<TableCell className="px-2 py-1">{v.name}</TableCell>
+									<TableCell className="px-2 py-1">
+										{v.primary_address?.city ?? '-'}
+									</TableCell>
+									<TableCell className="px-2 py-1">
+										{v.visible ? 'Visible' : 'Hidden'}
+									</TableCell>
+									<TableCell className="px-2 py-1 text-right">
+										<Button
+											size="sm"
+											variant={v.visible ? 'destructive' : 'default'}
+											disabled={actionLoading[v.id]}
+											onClick={() =>
+												updateVenueField(v.id, {
+													visibilityStatus: v.visible ? 0 : 1,
+													name: v.name,
+												})
+											}
+										>
+											{actionLoading[v.id]
+												? '...'
+												: v.visible
+													? 'Hide'
+													: 'Show'}
+										</Button>
+										{actionError[v.id] && (
+											<p className="text-xs text-red-500 mt-1">
+												{actionError[v.id]}
+											</p>
+										)}
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
 
-					</ul>
-
-					<div className="flex justify-between">
-						<button
+					<div className="flex justify-between items-center mt-4">
+						<Button
+							size="sm"
+							variant="outline"
 							onClick={handlePrev}
 							disabled={page <= 1}
-							className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
 						>
 							Previous
-						</button>
-
+						</Button>
 						<span className="text-sm text-gray-600">
 							Page {page} of {totalPages}
 						</span>
-
-						<button
+						<Button
+							size="sm"
+							variant="outline"
 							onClick={handleNext}
 							disabled={page >= totalPages}
-							className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
 						>
 							Next
-						</button>
+						</Button>
 					</div>
-				</div>
+				</>
 			)}
 		</div>
 	)

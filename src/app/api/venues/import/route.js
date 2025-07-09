@@ -35,18 +35,17 @@ export async function GET(req) {
 
 		// Get all venues from DB
 		const dbVenues = await prisma.venue.findMany({
-			select: { id: true, current_id: true, name: true }
+			select: { id: true, current_id: true, name: true, visible: true }
 		})
 
 		// Map DB venues to array keyed with RMS ID
 		const dbVenueMap = new Map(dbVenues.map((v) => [v.current_id, v]))
-
 		// Merge rmsVenues with visible from dbVenues
 		const mergedVenues = rmsVenues.map((rmsVenue) => {
 			const dbVenue = dbVenueMap.get(rmsVenue.id)
 			return {
 				...rmsVenue,
-				visible: dbVenue ? dbVenue.visible : null, // or default value
+				visible: dbVenue?.visible == true,
 			}
 		})
 
