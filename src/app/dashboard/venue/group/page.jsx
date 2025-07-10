@@ -120,7 +120,7 @@ export default function VenueGroupPage() {
 									<select
 										value={selectedVenueId}
 										onChange={e => setSelectedVenueId(e.target.value)}
-										className="text-sm border rounded px-2 py-1 bg-white"
+										className="text-sm border rounded px-2 py-1 bg-white w-[200px]"
 									>
 										<option value="all">All Venues</option>
 										{allVenues.map((v) => (
@@ -186,7 +186,7 @@ export default function VenueGroupPage() {
 											{org.venues && org.venues.length > 0 ? (
 												<ul className="list-disc list-inside space-y-1">
 													{org.venues.map(venue => (
-														<li key={venue.id}>{venue.name || `Venue #${venue.id}`}</li>
+														<li key={venue.id} className="p-0 m-0 text-xs">{venue.name || `Venue #${venue.id}`}</li>
 													))}
 												</ul>
 											) : (

@@ -15,7 +15,7 @@ export default function NewVenuePage() {
 						<strong>This venue will also be added to Current RMS</strong>
 					</CardDescription>
 				</CardHeader>
-				<CardContent>
+				<CardContent className="p-0">
 					<VenueForm />
 				</CardContent>
 			</Card>

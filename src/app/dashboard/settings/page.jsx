@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { toast } from "sonner";
 import { Switch } from '@/components/ui/switch'
 import {
 	Select,
@@ -29,17 +29,23 @@ export default function SettingsPage() {
 	const [contactEmail, setContactEmail] = useState('contact@example.com')
 
 	const handleUpdate = async () => {
-		setUpdating(true)
+		setUpdating(true);
 		try {
-			const res = await fetch('/api/venues/import/update', { method: 'GET' })
-			const result = await res.json()
-			alert('Venue names updated!')
+			const res = await fetch('/api/venues/import/update', { method: 'GET' });
+			const result = await res.json();
+
+			if (!res.ok) {
+				// Show error toast with message from response or fallback
+				toast.error(`Venues update failed: ${result.error || res.statusText}`);
+			} else {
+				toast.success("Venues updated successfully");
+			}
 		} catch (error) {
-			alert('Failed to update venues.')
+			toast.error("Venues update failed: " + error.message);
 		} finally {
-			setUpdating(false)
+			setUpdating(false);
 		}
-	}
+	};
 
 	return (
 		<div className="max-w-3xl mx-auto mt-10 px-4">
@@ -50,15 +56,16 @@ export default function SettingsPage() {
 				<CardContent className="space-y-6">
 					<table className="w-full text-sm">
 						<tbody className="divide-y divide-muted">
+
 							{/* Update Venue Names */}
 							<tr className="py-4">
 								<td className="pr-4 w-10">
 									<IconRefresh size={20} className="text-muted-foreground" />
 								</td>
-								<td className="py-4">
-									<strong>Update Venue Names</strong>
+								<td className="py-4 pt-0">
+									<strong>Update Venues</strong>
 									<p className="text-muted-foreground text-xs">
-										Pull latest venue names from Current RMS
+										Pull latest venue names and delete any venues that have been deleted in Current RMS.
 									</p>
 								</td>
 								<td className="text-right">

@@ -39,14 +39,14 @@ export default function EditVenueRoomPage() {
 
 	return (
 		<div className="p-6 max-w-xl">
-			<Card className="shadow-xs border rounded-lg">
+			<Card className="shadow-xs border rounded-lg p-0">
 				<CardHeader>
-					<CardTitle className="text-2xl">Update Room</CardTitle>
+					<CardTitle className="text-2xl mt-4">Update Room</CardTitle>
 					<CardDescription>
 						Fill in the details to update the room.
 					</CardDescription>
 				</CardHeader>
-				<CardContent><VenueRoomForm initialData={roomData} />
+				<CardContent className="p-0"><VenueRoomForm initialData={roomData} />
 				</CardContent>
 			</Card>
 		</div>

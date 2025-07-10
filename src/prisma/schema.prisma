@@ -8,32 +8,38 @@ datasource db {
 }
 
 model User {
-  id            String		@id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?		@unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
   password      String?
   accounts      Account[]
   sessions      Session[]
-  bookings 		Booking[]
-  lastLogin     DateTime @default(now())
-  role     		String? 
+  bookings      Booking[]
+  lastLogin     DateTime  @default(now())
+  role          String?
+
+  venueGroupId Int?
+  venueGroup   VenueGroup? @relation(fields: [venueGroupId], references: [id])
+
+  venueId Int?
+  venue   Venue? @relation(fields: [venueId], references: [id])
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? 
-  access_token      String? 
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
-  token_type        String? 
-  scope             String? 
-  id_token          String? 
-  session_state     String? 
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id])
 
@@ -69,28 +75,30 @@ model Booking {
 }
 
 model VenueGroup {
-  id      Int      @id @default(autoincrement())
-  name    String
-  venues  Venue[]
+  id     Int     @id @default(autoincrement())
+  name   String
+  venues Venue[]
+  User   User[]
 }
 
 model Venue {
-  id           Int       @id @default(autoincrement())
-  current_id   Int       @unique
-  name         String?
-  visible      Int       @default(1)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  current_id Int      @unique
+  name       String?
+  visible    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   venueGroupId Int?
   venueGroup   VenueGroup? @relation(fields: [venueGroupId], references: [id])
 
-  rooms        VenueRoom[] 
+  rooms VenueRoom[]
+  User  User[]
 }
 
 model VenueRoom {
-  id       Int    @id @default(autoincrement())
-  name     String
-  venueId  Int    
-  venue    Venue  @relation(fields: [venueId], references: [id])
+  id      Int    @id @default(autoincrement())
+  name    String
+  venueId Int
+  venue   Venue  @relation(fields: [venueId], references: [id])
 }

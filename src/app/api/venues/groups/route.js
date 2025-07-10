@@ -1,43 +1,52 @@
-import prisma from '@/lib/prisma'
+import prisma from '@/lib/prisma';
+import { NextResponse } from 'next/server';  // Next.js Response helper
 
 // Get all venue groups from DB
 export async function GET() {
-	const venueGroups = await prisma.venueGroup.findMany({
-		include: {
-			venues: true,
-		},
-	});
+	try {
+		// Fetch all venue groups along with their associated venues
+		const venueGroups = await prisma.venueGroup.findMany({
+			include: {
+				venues: true,  // Include the related venues for each group
+			},
+		});
 
-	return new Response(JSON.stringify(venueGroups), {
-		headers: { 'Content-Type': 'application/json' },
-	})
+		// Return the venue groups as JSON using NextResponse
+		return NextResponse.json(venueGroups, { status: 200 });
+
+	} catch (err) {
+		// If something goes wrong, return a 500 error with the message
+		return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+	}
 }
 
 // Add new venue group to DB
 export async function POST(req) {
 	try {
+		// Parse the incoming JSON body
 		const body = await req.json();
-		const { name, venueIDs } = body;
+		const { name, venueIds } = body;
 
-		// Insert venue group in DB
+		// Create the new venue group in the database
 		const newGroup = await prisma.venueGroup.create({
-			data: { name }
+			data: { name },
 		});
 
-		// Update all venues with venue group
+		// Update all selected venues to belong to this new venue group
 		await prisma.venue.updateMany({
 			where: {
-				id: { in: venueIds }
+				id: { in: venueIds },  // Only venues whose IDs are in this list will be updated
 			},
 			data: {
-				venueGroupId: newGroup.id
+				venueGroupId: newGroup.id,  // Set the new venue group ID
 			},
 		});
 
-		return new Response(JSON.stringify({ newGroup }), {
-			headers: { 'Content-Type': 'application/json' },
-		})
+		// Return the newly created group as JSON using NextResponse
+		return NextResponse.json({ newGroup }, { status: 201 });
+
 	} catch (err) {
-		return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+		// Return a 500 error with the message if anything fails
+		return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
 	}
 }

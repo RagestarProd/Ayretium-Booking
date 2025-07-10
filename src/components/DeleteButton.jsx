@@ -49,7 +49,7 @@ export default function DeleteButton({ delUrl, item, onDeleted }) {
 				</Button>
 			</AlertDialogTrigger>
 
-			<AlertDialogContent>
+			<AlertDialogContent className="bg-sidebar-foreground border-sidebar-primary-foreground border shadow-lg">
 				<AlertDialogHeader>
 					<AlertDialogTitle>Are you sure?</AlertDialogTitle>
 					<AlertDialogDescription>
@@ -58,8 +58,8 @@ export default function DeleteButton({ delUrl, item, onDeleted }) {
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-					<AlertDialogAction onClick={handleDelete} disabled={loading}>
+					<AlertDialogCancel disabled={loading} className="text-primary-foreground! hover:bg-foreground!">Cancel</AlertDialogCancel>
+					<AlertDialogAction onClick={handleDelete} disabled={loading} className="hover:text-primary-background! hover:bg-foreground">
 						{loading ? 'Deleting...' : 'Delete'}
 					</AlertDialogAction>
 				</AlertDialogFooter>

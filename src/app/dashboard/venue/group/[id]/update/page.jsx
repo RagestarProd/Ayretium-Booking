@@ -41,16 +41,14 @@ export default function EditVenueGroupPage() {
 	return (
 
 		<div className="p-6 max-w-xl">
-			<Card className="shadow-xs border rounded-lg">
+			<Card className="shadow-xs border rounded-lg p-0">
 				<CardHeader>
-					<CardTitle className="text-2xl">Update Organisation</CardTitle>
+					<CardTitle className="text-2xl mt-4">Update Organisation</CardTitle>
 					<CardDescription>
 						Fill in the details to update the organisation.
-						<br/>
-						<strong>Note: These changes will be uploaded to Current RMS</strong>
 					</CardDescription>
 				</CardHeader>
-				<CardContent><VenueGroupForm initialData={groupData} /></CardContent>
+				<CardContent className="p-0"><VenueGroupForm initialData={groupData} /></CardContent>
 			</Card>
 		</div >
 	)

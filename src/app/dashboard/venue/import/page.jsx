@@ -10,6 +10,7 @@ import {
 	TableCell,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function VenueListWithPagination() {
 	const [venues, setVenues] = useState([])
@@ -50,34 +51,36 @@ export default function VenueListWithPagination() {
 	const handlePrev = () => page > 1 && setPage(p => p - 1)
 
 	const updateVenueField = async (id, { visibilityStatus, name }) => {
-		setActionLoading(prev => ({ ...prev, [id]: true }))
-		setActionError(prev => ({ ...prev, [id]: null }))
+		setActionLoading(prev => ({ ...prev, [id]: true }));
+		setActionError(prev => ({ ...prev, [id]: null }));
 
 		try {
 			const res = await fetch(`/api/venues/${id}/update`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ visibilityStatus, name }),
-			})
+			});
+
+			const result = await res.json(); 
 
 			if (!res.ok) {
-				const errorData = await res.json()
-				throw new Error(errorData.error || 'Action failed')
+				throw new Error(result.error || 'Action failed');
 			}
 
-			setVenues(
-				result.data.map(v => ({
-					...v,
-					visible: v.visible === true || v.visible === 1 ? true : false,  // Force boolean
-				}))
-			)
+			setVenues(prevVenues =>
+				prevVenues.map(v =>
+					v.id === id
+						? { ...v, visible: result.visible === true || result.visible === 1 ? true : false }
+						: v
+				)
+			);
 
 		} catch (err) {
-			setActionError(prev => ({ ...prev, [id]: err.message || 'Error' }))
+			setActionError(prev => ({ ...prev, [id]: err.message || 'Error' }));
 		} finally {
-			setActionLoading(prev => ({ ...prev, [id]: false }))
+			setActionLoading(prev => ({ ...prev, [id]: false }));
 		}
-	}
+	};
 
 
 	return (
@@ -100,7 +103,18 @@ export default function VenueListWithPagination() {
 						<TableBody>
 							{venues.map(v => (
 								<TableRow key={v.id}>
-									<TableCell className="px-2 py-1">{v.name}</TableCell>
+									<TableCell className="px-2 py-1 max-w-[120px] truncate">
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span className="truncate cursor-default">{v.name}</span>
+												</TooltipTrigger>
+												<TooltipContent side="top">
+													<p>{v.name}</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									</TableCell>
 									<TableCell className="px-2 py-1">
 										{v.primary_address?.city ?? '-'}
 									</TableCell>
@@ -118,6 +132,7 @@ export default function VenueListWithPagination() {
 													name: v.name,
 												})
 											}
+											className={!v.visible ? 'bg-sidebar-foreground text-background hover:bg-sidebar-foreground/90' : ''}
 										>
 											{actionLoading[v.id]
 												? '...'

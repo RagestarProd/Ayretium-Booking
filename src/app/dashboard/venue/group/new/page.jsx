@@ -6,14 +6,14 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 export default function NewVenueRoomPage() {
 	return (
 		<div className="p-6 max-w-xl">
-			<Card className="shadow-xs border rounded-lg">
+			<Card className="shadow-xs border rounded-lg p-0">
 				<CardHeader>
-					<CardTitle className="text-2xl">Create New Organisation</CardTitle>
+					<CardTitle className="text-2xl mt-4">Create New Organisation</CardTitle>
 					<CardDescription>
 						Fill in the details to add a new organisation.
 					</CardDescription>
 				</CardHeader>
-				<CardContent>
+				<CardContent className="p-0">
 					<VenueGroupForm />
 				</CardContent>
 			</Card>

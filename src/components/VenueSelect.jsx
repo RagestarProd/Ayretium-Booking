@@ -3,6 +3,15 @@
 import { useEffect, useState } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import {
+	Select,
+	SelectTrigger,
+	SelectValue,
+	SelectContent,
+	SelectItem
+} from '@/components/ui/select'
+import { useParams } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function VenueSelect({
 	onVenueSelect,
@@ -15,14 +24,15 @@ export default function VenueSelect({
 	const [selectedId, setSelectedId] = useState(null)
 	const [loading, setLoading] = useState(true)
 
-	// Determine if we're in edit mode
+	const params = useParams()
+	const currentVenueGroupID = params?.id ? Number(params.id) : null
+
 	const isEditMode = selectedIdss.length > 0
 	const initialIds = selectedIdss.map((v) => (typeof v === 'object' ? v.id : v))
 
 	useEffect(() => {
 		const fetchVenues = async () => {
 			try {
-				// Get all venues
 				const res = await fetch('/api/venues/db')
 				const data = await res.json()
 				setVenues(data.data)
@@ -35,7 +45,6 @@ export default function VenueSelect({
 
 		fetchVenues()
 
-		// Set initial selection
 		if (mode === 'singleselect' && initialVenueId) {
 			setSelectedId(initialVenueId)
 		}
@@ -44,20 +53,17 @@ export default function VenueSelect({
 		}
 	}, [])
 
-	// Toggle selection
 	const toggleSelection = (id) => {
 		setSelectedIds((prev) =>
 			prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
 		)
 	}
 
-	// Handle single-select dropdown change
-	const handleSingleSelect = (e) => {
-		const value = e.target.value === '' ? null : Number(e.target.value)
-		setSelectedId(value)
+	const handleSingleSelect = (value) => {
+		const selected = value === '' ? null : Number(value)
+		setSelectedId(selected)
 	}
 
-	// Notify parent of selection
 	useEffect(() => {
 		if (!onVenueSelect) return
 		if (mode === 'singleselect') {
@@ -68,49 +74,42 @@ export default function VenueSelect({
 	}, [selectedId, selectedIds, onVenueSelect, mode])
 
 	return (
-		<div>
-			<Label className="mb-2">
-				{mode === 'singleselect'
-					? 'Belongs to'
-					: selectedIds.length === 0
-						? 'Select Venues'
-						: `Selected (${selectedIds.length})`}
-			</Label>
-
+		<div className="space-y-2">
 			{loading ? (
-				<div className="p-4 text-sm text-gray-500">Loading...</div>
+				<Skeleton className="h-10 w-full rounded-md" />
 			) : mode === 'singleselect' ? (
-				<select
-					value={selectedId || ''}
-					onChange={handleSingleSelect}
-					className="w-full p-2 border rounded rounded-[4.4px] border-input shadow-xs"
+				<Select
+					value={selectedId ? selectedId.toString() : undefined}
+					onValueChange={handleSingleSelect}
 				>
-					<option value="">Choose a venue</option>
-					{venues.map((venue) => (
-						<option key={venue.id} value={venue.id}>
-							{venue.name}
-						</option>
-					))}
-				</select>
+					<SelectTrigger>
+						<SelectValue placeholder="Choose a venue" />
+					</SelectTrigger>
+					<SelectContent>
+						{venues.map((venue) => (
+							<SelectItem key={venue.id} value={venue.id.toString()}>
+								{venue.name}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			) : (
-				<div className="border rounded-md max-h-64 overflow-y-auto p-2">
+				<div className="border rounded-lg max-h-64 overflow-y-auto p-2 space-y-1">
 					{venues.map((venue) => {
-						const isAssignedToGroup = venue.venueGroupId !== null
 						const isInThisGroup = selectedIds.includes(venue.id)
-						const isDisabled = !isEditMode && isAssignedToGroup
+						const isDisabled = venue.venueGroupId !== null && currentVenueGroupID !== venue.venueGroupId
 
 						return (
 							<label
 								key={venue.id}
-								className={`flex items-center gap-2 cursor-pointer py-1 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''
-									}`}
+								className={`flex items-center gap-2 py-1 px-2 rounded-md ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted'}`}
 							>
 								<Checkbox
 									checked={isInThisGroup}
 									onCheckedChange={() => toggleSelection(venue.id)}
 									disabled={isDisabled}
 								/>
-								<span className="text-sm">{venue.name}</span>
+								<span className="text-sm text-foreground whitespace-break-spaces">{venue.name}</span>
 							</label>
 						)
 					})}

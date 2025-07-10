@@ -43,9 +43,11 @@ export default function EditVenuePage() {
 					<CardTitle className="text-2xl">Update Venue</CardTitle>
 					<CardDescription>
 						Fill in the details to update the venue.
+						<br />
+						<strong>This venue will updated in Current RMS</strong>
 					</CardDescription>
 				</CardHeader>
-				<CardContent>
+				<CardContent className="p-0">
 					<VenueForm initialData={venueData} />
 				</CardContent>
 			</Card>

@@ -1,119 +1,91 @@
-import prisma from '@/lib/prisma'
+import prisma from '@/lib/prisma';
+import { NextResponse } from 'next/server';  // Next.js built-in response helper
 
+// Get venue group by ID
 export async function GET(request, context) {
 	const params = await context.params;
 	const { id } = params;
 
 	const groupId = Number(id);
 
+	// Validate that ID is numeric
 	if (isNaN(groupId)) {
-		return new Response(JSON.stringify({ error: "Invalid group id" }), { status: 400 });
+		return NextResponse.json({ error: "Invalid group id" }, { status: 400 });
 	}
 
 	try {
+		// Fetch venue group by ID including its related venues
 		const venueGroup = await prisma.venueGroup.findUnique({
 			where: { id: groupId },
-			// Include related data if applicable, e.g., venues:
-			include: { venues: true },
+			include: { venues: true }, // Include venues for this group
 		});
 
+		// If no venue group found, return 404
 		if (!venueGroup) {
-			return new Response(JSON.stringify({ error: "Venue group not found" }), { status: 404 });
+			return NextResponse.json({ error: "Venue group not found" }, { status: 404 });
 		}
 
-		return new Response(JSON.stringify(venueGroup), {
-			headers: { "Content-Type": "application/json" },
-		});
+		// Return the venue group data
+		return NextResponse.json(venueGroup, { status: 200 });
+
 	} catch (err) {
-		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+		// Catch any unexpected errors and return 500
+		return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
 	}
 }
 
-
-export async function POST(request, context) {
-	const params = await context.params;
-	const id = params.id;
-	const groupId = Number(id);
-
-	if (isNaN(groupId)) {
-		return new Response(JSON.stringify({ error: "Invalid group id" }), { status: 400 });
-	}
-
-	try {
-		const body = await request.json();
-		const { name } = body;
-
-		if (!name) {
-			return new Response(JSON.stringify({ error: "Missing or invalid fields" }), { status: 400 });
-		}
-
-		const updatedGroup = await prisma.venueGroup.update({
-			where: { id: groupId },
-			data: {
-				name,
-				// Add other fields here if you want to update more
-			},
-		});
-
-		return new Response(JSON.stringify({ updatedGroup }), {
-			headers: { "Content-Type": "application/json" },
-		});
-	} catch (err) {
-		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
-	}
-}
-
-
+// Update existing venue group
 export async function PATCH(request, context) {
 	const params = await context.params;
 	const id = params.id;
 	const groupId = Number(id);
 
+	// Validate that ID is numeric
 	if (isNaN(groupId)) {
-		return new Response(JSON.stringify({ error: "Invalid group id" }), { status: 400 });
+		return NextResponse.json({ error: "Invalid group id" }, { status: 400 });
 	}
 
 	try {
+		// Parse incoming JSON body
 		const body = await request.json();
+		const { name, venueIds } = body;  // venueIds is optional
 
-		const { name, venueIds } = body; // Assume venueIds is an optional array of venue IDs
-
-		// Validate input if needed
+		// Validate name if provided
 		if (name !== undefined && typeof name !== "string") {
-			return new Response(JSON.stringify({ error: "Invalid name" }), { status: 400 });
-		}
-		if (venueIds !== undefined && !Array.isArray(venueIds)) {
-			return new Response(JSON.stringify({ error: "venueIds must be an array" }), { status: 400 });
+			return NextResponse.json({ error: "Invalid name" }, { status: 400 });
 		}
 
-		// Build data object dynamically
+		// Validate venueIds if provided
+		if (venueIds !== undefined && !Array.isArray(venueIds)) {
+			return NextResponse.json({ error: "venueIds must be an array" }, { status: 400 });
+		}
+
+		// Dynamically build the data to update based on provided fields
 		const dataToUpdate = {};
 		if (name) dataToUpdate.name = name;
 
-		// If venueIds provided, update relations via connect/disconnect
+		// If venueIds provided, update relations: disconnect all then connect new ones
 		if (venueIds) {
-			// Disconnect all current venues first, then connect new ones
 			dataToUpdate.venues = {
-				set: venueIds.map(id => ({ id })),
+				set: venueIds.map(id => ({ id })),  // Prisma relation update
 			};
 		}
 
+		// Perform the update and include the updated venues in the response
 		const updatedGroup = await prisma.venueGroup.update({
 			where: { id: groupId },
 			data: dataToUpdate,
-			include: { venues: true },
+			include: { venues: true },  // Return updated related venues
 		});
-		console.log(updatedGroup)
 
-		return new Response(JSON.stringify({ updatedGroup }), {
-			headers: { "Content-Type": "application/json" },
-		});
+		// Return updated group
+		return NextResponse.json({ updatedGroup }, { status: 200 });
+
 	} catch (err) {
-		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+		// Catch errors and return 500
+		return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
 	}
 }
-
-
 
 // Hard delete a venue group by ID
 export async function DELETE(request, context) {
@@ -121,19 +93,23 @@ export async function DELETE(request, context) {
 	const { id } = params;
 
 	const groupId = Number(id);
+
+	// Validate that ID is numeric
 	if (isNaN(groupId)) {
-		return new Response(JSON.stringify({ error: "Invalid org id" }), { status: 400 });
+		return NextResponse.json({ error: "Invalid org id" }, { status: 400 });
 	}
 
 	try {
+		// Delete the venue group by ID
 		const deletedGroup = await prisma.venueGroup.delete({
 			where: { id: groupId },
 		});
 
-		return new Response(JSON.stringify({ success: true, org: deletedGroup }), {
-			headers: { "Content-Type": "application/json" },
-		});
+		// Return success response with deleted group info
+		return NextResponse.json({ success: true, org: deletedGroup }, { status: 200 });
+
 	} catch (err) {
-		return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+		// If delete fails (e.g., invalid ID), return 500
+		return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
 	}
 }

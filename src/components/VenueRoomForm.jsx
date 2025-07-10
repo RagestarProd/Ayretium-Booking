@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import VenueSelect from "@/components/VenueSelect";
+import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { toast } from "sonner";
+import { IconBuildingStore, IconDoor } from '@tabler/icons-react'; // Icons for Venue and Room
+
+import VenueSelect from "@/components/VenueSelect";
 
 export default function VenueRoomForm({ initialData }) {
 	const router = useRouter();
@@ -16,7 +19,7 @@ export default function VenueRoomForm({ initialData }) {
 	const [name, setName] = useState(initialData?.name || "");
 	const [selectedVenueId, setSelectedVenueId] = useState(initialData?.venueId || null);
 
-	// Optional: sync state if initialData changes (rare, but good practice)
+	// Sync state if initialData changes
 	useEffect(() => {
 		if (initialData) {
 			setName(initialData.name || "");
@@ -24,6 +27,7 @@ export default function VenueRoomForm({ initialData }) {
 		}
 	}, [initialData]);
 
+	// Handle form submission: POST to create, PATCH to update venue room
 	async function handleSubmit(e) {
 		e.preventDefault();
 		setLoading(true);
@@ -33,9 +37,7 @@ export default function VenueRoomForm({ initialData }) {
 			venueID: selectedVenueId,
 		};
 
-		// Use PATCH for update, POST for create
 		const method = initialData?.id ? "PATCH" : "POST";
-
 		const url = initialData?.id
 			? `/api/venues/rooms/${initialData.id}`
 			: "/api/venues/rooms";
@@ -43,9 +45,7 @@ export default function VenueRoomForm({ initialData }) {
 		try {
 			const res = await fetch(url, {
 				method,
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			});
 
@@ -65,28 +65,59 @@ export default function VenueRoomForm({ initialData }) {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl p-4 pt-0">
-			<div className="space-y-2">
-				<Label htmlFor="name">Room Name</Label>
-				<Input
-					name="name"
-					placeholder="Name"
-					required
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-				/>
-			</div>
+		<form onSubmit={handleSubmit} className="p-0 max-w-xl mx-auto">
+			<Table>
+				<TableBody>
+					{/* Room Name Row with top border only */}
+					<TableRow className="border-t border-border px-4">
+						<TableCell className="w-1/3 px-4 py-3">
+							<Label htmlFor="name" className="flex items-center">
+								<IconDoor className="w-5 h-5 mr-2 text-gray-600" />
+								Room Name
+							</Label>
+						</TableCell>
+						<TableCell className="px-4 py-3">
+							<Input
+								id="name"
+								name="name"
+								placeholder="Name"
+								required
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+							/>
+						</TableCell>
+					</TableRow>
 
-			<VenueSelect
-				mode="singleselect"
-				onVenueSelect={setSelectedVenueId}
-				selectedIds={selectedVenueId ? [selectedVenueId] : []}
-				initialVenueId={initialData?.venueId}
-			/>
+					{/* Venue Select Row */}
+					<TableRow className="px-4">
+						<TableCell className="px-4 py-3">
+							<Label className="flex items-center">
+								<IconBuildingStore className="w-5 h-5 mr-2 text-gray-600" />
+								Venue
+							</Label>
+						</TableCell>
+						<TableCell className="px-4 py-3">
+							<VenueSelect
+								mode="singleselect"
+								onVenueSelect={setSelectedVenueId}
+								selectedIds={selectedVenueId ? [selectedVenueId] : []}
+								initialVenueId={initialData?.venueId}
+							/>
+						</TableCell>
+					</TableRow>
 
-			<Button type="submit" disabled={loading}>
-				{loading ? (initialData ? "Updating..." : "Adding...") : (initialData ? "Update Room" : "Add Room")}
-			</Button>
+					{/* Submit button */}
+					<TableRow className="px-4">
+						<TableCell colSpan={2} className="px-4 py-4 text-right">
+							<Button type="submit" disabled={loading}>
+								{loading
+									? (initialData ? "Updating..." : "Adding...")
+									: (initialData ? "Update Room" : "Add Room")}
+							</Button>
+						</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>
 		</form>
 	);
 }

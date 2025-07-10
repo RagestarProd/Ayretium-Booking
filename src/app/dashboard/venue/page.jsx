@@ -105,6 +105,7 @@ export default function VenueListWithPagination() {
 											variant="ghost"
 											onClick={() => router.push(`/venue/edit/${v.id}`)}
 											className="text-primary hover:text-white"
+											hidden="true"
 										>
 											<IconTrash />
 										</Button>
